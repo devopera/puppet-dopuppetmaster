@@ -1,0 +1,68 @@
+#
+# This configuration file is now managed by puppet.
+# Please change cautiously as those changes may not persist.
+#
+
+[main]
+    # The Puppet log directory.
+    logdir = /var/log/puppet
+
+    # Where Puppet PID files are kept.
+    rundir = /var/run/puppet
+
+    # Unless we're explicitly running as agent, use 'master' certs
+    ssldir = $vardir/<%= @masterssl_name %>
+
+    pluginsync = true
+
+[agent]
+<%- if (@master_use_original == true) -%>
+    # SSL certificates for this machine as a client to another puppetmaster (the original puppetmaster)
+    # This machine will play the agent role first, so we'll stick with the default (ssl) dir for agent
+    ssldir = $vardir/ssl
+
+<%- else -%>
+    # Share SSL certificates for this machine as an agent and as a master
+    # but manually force agent to ignore /etc/hosts' puppet entry and use local
+    server = <%= @fqdn %>
+
+<%- end -%>
+    # The file in which puppetd stores a list of the classes
+    # associated with the retrieved configuratiion.  Can be loaded in
+    # the separate ``puppet`` executable using the ``--loadclasses``
+    # option.
+    # The default value is '$confdir/classes.txt'.
+    classfile = $vardir/classes.txt
+
+    # Where puppetd caches the local configuration.  An
+    # extension indicating the cache format is added automatically.
+    # The default value is '$confdir/localconfig'.
+    localconfig = $vardir/localconfig
+    
+    # environment for this agent/client
+    environment = <%= @environment %>
+
+# Puppetmaster additional configuration
+[master]
+    # modules per environment and default manifest
+    modulepath = $confdir/environments/$environment/modules:$confdir/modules
+    manifest = $confdir/manifests/unknown_environment.pp
+
+<%- if (@use_puppetdb == true) -%>
+    # Store configs in PuppetDB instance
+    storeconfigs_backend = puppetdb
+    storeconfigs = true
+
+<%- end -%>
+<% environments.each do |environment_name,attrib| -%>
+[<%= environment_name %>]
+<% attrib.each do |key,value| -%>
+  <%- if key == 'comment' -%>
+    # <%= value %>
+  <%- else -%>
+    <%= key %> = <%= value %>
+  <%- end -%>
+<% end -%>
+
+<% end -%>
+
