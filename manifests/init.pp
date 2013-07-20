@@ -158,6 +158,11 @@ class dopuppetmaster (
       # don't check the connection because it fails on the nth run
       strict_validation => false,
     }->
+    # puppetdb module creates config owned by root, but change to $user
+    exec { 'puppetdb-fix-config-ownership' :
+      path => '/bin:/sbin:/usr/bin',
+      command => "chown ${user}:puppet /etc/puppet/puppetdb.conf",        
+    }->
     # Ensure the puppetmaster service is running to initially generate its certs
     exec { 'puppetmaster-pre-regen-start' :
       path => '/bin:/sbin:/usr/bin',
