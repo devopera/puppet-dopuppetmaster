@@ -10,11 +10,11 @@ class dopuppetmaster::firewall (
 
 ) {
 
-  @firewall { '08140 Puppetmaster Service':
+  @docommon::fireport { '08140 Puppetmaster Service':
     protocol => 'tcp',
     port => '8140',
   }
-  @firewall { '08081 PuppetDB Service':
+  @docommon::fireport { '08081 PuppetDB Service':
     protocol => 'tcp',
     port => '8081',
   }
