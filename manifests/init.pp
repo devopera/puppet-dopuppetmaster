@@ -19,8 +19,9 @@ class dopuppetmaster (
   # by default merge this repo into the current puppet config
   $puppet_repo_merge = true,
   
-  # open up firewall port
+  # open up firewall port and monitor
   $firewall = true,
+  $monitor = true,
 
   # by default, split the ssl dirs so the new puppetmaster can connect to its old puppetmaster
   $masterssl_name = 'masterssl',
@@ -36,6 +37,18 @@ class dopuppetmaster (
   # begin class
 
 ) {
+
+  # open firewall ports and monitor
+  if ($firewall) {
+    class { 'dopuppetmaster::firewall' : }
+  }
+  if ($monitor) {
+    class { 'dopuppetmaster::monitor' : }
+  }
+
+  # if we've got a message of the day, include
+  @domotd::register { "Puppetmaster(8140)" : }
+  @domotd::register { "PuppetDB(8081)" : }  
 
   # install puppet master package, run puppet master on startup
   case $operatingsystem {
@@ -57,16 +70,6 @@ class dopuppetmaster (
   package { ['rspec', 'mocha']:
     ensure   => 'present',
     provider => 'gem',
-  }
-
-  # install puppet dashboard
-#  package { ['puppet-dashboard'] :
-#    ensure => 'present',
-#  }
-
-  # open firewall ports
-  if ($firewall) {
-    class { 'dopuppetmaster::firewall' : }
   }
 
   # setup repo
