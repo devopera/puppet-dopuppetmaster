@@ -104,8 +104,12 @@ class dopuppetmaster (
       require => [Class['dorepos'], Package['install-puppet-master']],
       user => $user,
       group => $group,
+      # don't force all the script files to +x bit
       force_perms_onsh => false,
+      # don't update the repo if already there
       force_update => false,
+      # do put all the submodules on their master branch
+      force_branch_master => true,
     }
 
     if ($puppet_repo_merge) {
