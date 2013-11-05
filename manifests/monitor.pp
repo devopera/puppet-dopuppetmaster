@@ -10,10 +10,10 @@ class dopuppetmaster::monitor (
 
 ) {
 
-  @nagios::service { "int:process_puppetmaster-dopuppetmaster-${::hostname}":
+  @nagios::service { "int:process_puppetmaster-dopuppetmaster-${::fqdn}":
     check_command => "check_procs!1:!1:!'puppet master'",
   }
-  @nagios::service { "int:process_puppetdb-dopuppetmaster-${::hostname}":
+  @nagios::service { "int:process_puppetdb-dopuppetmaster-${::fqdn}":
     check_command => "check_procs!1:!1:!puppetdb",
   }
 
