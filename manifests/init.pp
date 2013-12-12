@@ -52,7 +52,7 @@ class dopuppetmaster (
 
   # install puppet master package, run puppet master on startup
   case $operatingsystem {
-    centos, redhat: {
+    centos, redhat, fedora: {
       $package_name = 'puppet-server'
       $service_name = 'puppetmaster'
     }
