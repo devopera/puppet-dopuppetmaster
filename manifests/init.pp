@@ -6,7 +6,10 @@ class dopuppetmaster (
 
   $user,
   $group = 'puppet',
-  $puppet_repo = undef,
+
+  $puppet_repo_source = undef,
+  $puppet_repo_provider = 'git',
+  $puppet_repo_path = '/etc/puppet',
 
   # define the default environments for this puppetmaster
   $environments = {
@@ -73,11 +76,11 @@ class dopuppetmaster (
   }
 
   # setup repo
-  if ($puppet_repo != undef) {
+  if ($puppet_repo_source != undef) {
   
     # setup vars
-    $filepath = $puppet_repo['path']
-    $creates_dep = ".${puppet_repo['provider']}"
+    $filepath = $puppet_repo_path
+    $creates_dep = ".${puppet_repo_provider}"
     $tmp_puppet_folder = '/tmp/puppet-old-etc'
     
     # if a directory exists (and it's not a repo) on the file path, move it and create a new one (with perms) but keep it empty
@@ -96,10 +99,10 @@ class dopuppetmaster (
 
     # checkout the repo into target path
     dorepos::getrepo { 'puppet':
-      provider => $puppet_repo['provider'],
+      provider => $puppet_repo_provider,
       # get path: find the first part of the string before the last slash that's followed by a character
       path => regsubst($filepath, '^(.+)/(.+)$', '\1'),
-      source => $puppet_repo['source'],
+      source => $puppet_repo_source,
       provider_options => '--recursive',
       require => [Class['dorepos'], Package['install-puppet-master']],
       user => $user,
@@ -109,7 +112,8 @@ class dopuppetmaster (
       # don't update the repo if already there
       force_update => false,
       # do put all the submodules on their master branch
-      force_branch_master => true,
+      submodule_branch => 'master',
+      force_submodule_branch => true,
     }
 
     if ($puppet_repo_merge) {
