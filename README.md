@@ -1,7 +1,7 @@
 [devopera](http://devopera.com)-[dopuppetmaster](http://devopera.com/module/dopuppetmaster)
 =====================
 
-Devopera repository for creating a puppetmaster
+The Puppetmaster is the central tenet of a puppet infrastructure.  This Devopera puppet module configures a puppetmaster that is itself puppetable, uses stored configs in PuppetDB and optionally links to Nagios for monitoring.
 
 Changelog
 ---------
