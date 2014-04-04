@@ -160,6 +160,8 @@ class dopuppetmaster (
     # configure puppetDB and its underlying database
     class { 'puppetdb':
       database => 'embedded',
+      # raise heap memory limit from 192m to 512m
+      java_args => { '-Xmx' => '512m' },
       require => [File['setup-puppetmaster-conf']],
     }->
     # Configure the puppet master to use puppetdb
