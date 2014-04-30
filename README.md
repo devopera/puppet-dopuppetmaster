@@ -6,6 +6,10 @@ The Puppetmaster is the central tenet of a puppet infrastructure.  This Devopera
 Changelog
 ---------
 
+2014-04-30
+
+ * Migrated over to using environment directories
+
 2014-04-04
 
  * Raise java heap memory limit for Puppet DB

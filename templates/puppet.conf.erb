@@ -44,25 +44,35 @@
 
 # Puppetmaster additional configuration
 [master]
-    # modules per environment and default manifest
-    modulepath = $confdir/environments/$environment/modules:$confdir/modules
-    manifest = $confdir/manifests/unknown_environment.pp
-
 <%- if (@use_puppetdb == true) -%>
     # Store configs in PuppetDB instance
     storeconfigs_backend = puppetdb
     storeconfigs = true
 
 <%- end -%>
-<% environments.each do |environment_name,attrib| -%>
-[<%= environment_name %>]
-<% attrib.each do |key,value| -%>
-  <%- if key == 'comment' -%>
+<%- if (@environmentpath == undef) -%>
+    # modules only in /modules and only use a single manifest
+    modulepath = $confdir/modules
+    manifest = $confdir/manifests/site.pp
+
+  <% environments.each do |environment_name,attrib| -%>
+  [<%= environment_name %>]
+  <% attrib.each do |key,value| -%>
+    <%- if key == 'comment' -%>
     # <%= value %>
-  <%- else -%>
+    <%- else -%>
     <%= key %> = <%= value %>
-  <%- end -%>
-<% end -%>
+    <%- end -%>
+  <% end -%>
+<%- else -%>
+    # modules only in /modules and only use a single manifest
+    environmentpath = <%= environmentpath %>
+    # default basemodulepath looks for modules first in environment, then global modules
+    #   basemodulepath = $confdir/modules
+    # modulepath and manifest settings are always ignored
+    #   modulepath = $confdir/modules
+    #   manifest = $confdir/manifests/site.pp
+<%- end -%>
 
 <% end -%>
 

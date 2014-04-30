@@ -18,6 +18,9 @@ class dopuppetmaster (
       manifest => '$confdir/manifests/site.pp',
     },
   },
+  
+  # enable environments, disabled by default in Puppet >= 3.5.1
+  $environmentpath = '$confdir/environments',
 
   # by default merge this repo into the current puppet config
   $puppet_repo_merge = true,
@@ -92,9 +95,15 @@ class dopuppetmaster (
     }->
 
     # set the sticky permissions on that directory
-    docommon::setfacl { 'dopuppetmaster-sticky-etc-puppet' :
+#    docommon::setfacl { 'dopuppetmaster-sticky-etc-puppet' :
+#      filename => "${filepath}",
+#      acl => "-dm u::rwx -m g::r-x -m o::---",
+#    }->
+    docommon::stickydir { 'dopuppetmaster-sticky-etc-puppet' :
       filename => "${filepath}",
-      acl => "-dm u::rwx -m g::r-x -m o::---",
+      user => $user,
+      group => $group,
+      recurse => true,
     }->
 
     # checkout the repo into target path
@@ -128,6 +137,7 @@ class dopuppetmaster (
         before => File['common-puppet-symlink'],
       }
     }
+    
   } else {
     $filepath = '/etc/puppet'
   }
