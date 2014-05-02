@@ -58,6 +58,7 @@ class dopuppetmaster (
 
   # install puppet master package, run puppet master on startup
   case $operatingsystem {
+    # when settings names, can't assume that puppetdb is included
     centos, redhat, fedora: {
       $package_name = 'puppet-server'
       $service_name = 'puppetmaster'
@@ -94,15 +95,24 @@ class dopuppetmaster (
       require => Package['install-puppet-master'],
     }->
 
+    # can't just use stickdir here because it creates a dependency cycle
+    #docommon::stickydir { 'dopuppetmaster-sticky-etc-puppet' :
+    #  filename => "${filepath}",
+    #  user => $user,
+    #  group => $group,
+    #  recurse => true,
+    #}->
     # set the sticky permissions on that directory
-#    docommon::setfacl { 'dopuppetmaster-sticky-etc-puppet' :
-#      filename => "${filepath}",
-#      acl => "-dm u::rwx -m g::r-x -m o::---",
-#    }->
-    docommon::stickydir { 'dopuppetmaster-sticky-etc-puppet' :
+    docommon::setfacl { 'dopuppetmaster-sticky-etc-puppet' :
+      filename => "${filepath}",
+      acl => "-dm u::rwx -m g::r-x -m o::---",
+    }->
+    # recursively set the permissions only on directories (because files are a git-mixture of 644 and 755)
+    docommon::setperms { 'dopuppetmaster-sticky-etc-puppet' :
       filename => "${filepath}",
       user => $user,
       group => $group,
+      mode => false,
       recurse => true,
     }->
 
@@ -151,9 +161,11 @@ class dopuppetmaster (
   }->
   
   # create a service (and auto-start) with exactly the same name as the one that puppetdb::master::config looks for
+  # which stops puppetdb::master::config re-creating it
   service { "${service_name}" :
     ensure => running,
     enable => true,
+    tag => 'service-sensitive',
   }
 
   # use the template to generate a new puppet.conf and restart puppetmaster
@@ -174,6 +186,7 @@ class dopuppetmaster (
       java_args => { '-Xmx' => '512m' },
       require => [File['setup-puppetmaster-conf']],
     }->
+    
     # Configure the puppet master to use puppetdb
     class { 'puppetdb::master::config':
       # don't put lines into puppet.conf (because it's versioned and dynamically generated)
@@ -186,6 +199,7 @@ class dopuppetmaster (
       path => '/bin:/sbin:/usr/bin',
       command => "chown ${user}:puppet /etc/puppet/puppetdb.conf",        
     }->
+
     # Ensure the puppetmaster service is running to initially generate its certs
     exec { 'puppetmaster-pre-regen-start' :
       path => '/bin:/sbin:/usr/bin',
@@ -202,7 +216,13 @@ class dopuppetmaster (
     # restart puppetdb, then puppetmaster
     exec { 'puppetmaster-restart-after-puppetdb' :
       path => '/sbin',
-      command => "service puppetdb restart && service ${service_name} restart",
+      command => "service ${::puppetdb::params::puppetdb_service} restart && service ${service_name} restart",
+      tag => 'service-sensitive',
+    }
+    
+    # use resource collector to make puppetdb service-sensitive
+    Service <| title == "${::puppetdb::params::puppetdb_service}" |> {
+      tag => 'service-sensitive',
     }
   }
   

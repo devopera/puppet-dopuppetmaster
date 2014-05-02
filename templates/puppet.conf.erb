@@ -50,7 +50,15 @@
     storeconfigs = true
 
 <%- end -%>
-<%- if (@environmentpath == undef) -%>
+<%- if (@environmentpath) -%>
+    # modules only in /modules and only use a single manifest
+    environmentpath = <%= environmentpath %>
+    # default basemodulepath looks for modules first in environment, then global modules
+    #   basemodulepath = $confdir/modules
+    # modulepath and manifest settings are always ignored
+    #   modulepath = $confdir/modules
+    #   manifest = $confdir/manifests/site.pp
+<%- else -%>
     # modules only in /modules and only use a single manifest
     modulepath = $confdir/modules
     manifest = $confdir/manifests/site.pp
@@ -64,14 +72,6 @@
     <%= key %> = <%= value %>
     <%- end -%>
   <% end -%>
-<%- else -%>
-    # modules only in /modules and only use a single manifest
-    environmentpath = <%= environmentpath %>
-    # default basemodulepath looks for modules first in environment, then global modules
-    #   basemodulepath = $confdir/modules
-    # modulepath and manifest settings are always ignored
-    #   modulepath = $confdir/modules
-    #   manifest = $confdir/manifests/site.pp
 <%- end -%>
 
 <% end -%>
