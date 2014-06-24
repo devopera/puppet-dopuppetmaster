@@ -1,0 +1,15 @@
+{
+  "name": "devopera-dopuppetmaster",
+  "version": "0.9.1",
+  "author": "(c) Alex Stanhope, Devopera.com",
+  "summary": "Self-contained, self-puppetting puppetmaster installation and configuration module",
+  "license": "Apache License, Version 2.0",
+  "source": "https://github.com/devopera/puppet-dopuppetmaster",
+  "project_page": "http://devopera.com/module/dopuppetmaster",
+  "description": "The Puppetmaster is the central tenet of a puppet infrastructure.  \nThis Devopera puppet module configures a puppetmaster that is itself puppetable, uses stored configs in PuppetDB and optionally links to Nagios for monitoring.",
+  "issues_url": "https://github.com/devopera/puppet-dopuppetmaster/issues",
+  "dependencies": [
+    {"name":"devopera/docommon","version_requirement":"0.9.1"},
+    {"name":"devopera/dorepos","version_requirement":"0.9.1"}
+  ]
+}
