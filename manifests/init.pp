@@ -10,8 +10,9 @@ class dopuppetmaster (
   $puppet_repo_source = undef,
   $puppet_repo_provider = 'git',
   $puppet_repo_path = '/etc/puppet',
+  $puppet_environments = {},
 
-  # define the default environments for this puppetmaster
+  # deprecated, to be removed
   $environments = {
     'production' => {
       comment => 'production is the default environment',
@@ -19,7 +20,7 @@ class dopuppetmaster (
     },
   },
   
-  # enable environments, disabled by default in Puppet >= 3.5.1
+  # re-enable environments as was disabled by default in Puppet >= 3.5.1
   $environmentpath = '$confdir/environments',
 
   # by default merge this repo into the current puppet config
@@ -37,12 +38,20 @@ class dopuppetmaster (
 
   # setup puppetdb and stored configs,
   $use_puppetdb = true,
+  $symlinkdir = '/home/web',
 
   # end of class arguments
   # ----------------------
   # begin class
 
 ) {
+
+  # update symlinkdir based on username
+  if ($symlinkdir == '/home/web') {
+    $real_symlinkdir = "/home/${user}"
+  } else {
+    $real_symlinkdir = $symlinkdir
+  }
 
   # open firewall ports and monitor
   if ($firewall) {
@@ -86,7 +95,7 @@ class dopuppetmaster (
     $filepath = $puppet_repo_path
     $creates_dep = ".${puppet_repo_provider}"
     $tmp_puppet_folder = '/tmp/puppet-old-etc'
-    
+
     # if a directory exists (and it's not a repo) on the file path, move it and create a new one (with perms) but keep it empty
     exec { 'move-puppet-collision':
       path => '/bin:/usr/bin',
@@ -123,7 +132,6 @@ class dopuppetmaster (
       path => regsubst($filepath, '^(.+)/(.+)$', '\1'),
       source => $puppet_repo_source,
       provider_options => '--recursive',
-      require => [Class['dorepos'], Package['install-puppet-master']],
       user => $user,
       group => $group,
       # don't force all the script files to +x bit
@@ -133,7 +141,27 @@ class dopuppetmaster (
       # do put all the submodules on their master branch
       submodule_branch => 'master',
       force_submodule_branch => true,
+      require => [Class['dorepos'], Package['install-puppet-master']],
+      before => [Anchor['dopuppetmaster-puppet-repo-ready']],
     }
+    # then checkout environments into target path
+    $environment_repo_defaults = {
+      provider => $puppet_repo_provider,
+      # environments checked out into folder within puppet working directory
+      path => "${filepath}/environments",
+      source => $puppet_repo_source,
+      user => $user,
+      group => $group,
+      # don't force all the script files to +x bit
+      force_perms_onsh => false,
+      # don't update the repo if already there
+      force_update => false,
+      require => [Dorepos::Getrepo['puppet']],
+      before => [Anchor['dopuppetmaster-puppet-repo-ready']],
+    }
+    create_resources(dorepos::getrepo, $puppet_environments, $environment_repo_defaults)
+
+    anchor { 'dopuppetmaster-puppet-repo-ready': }
 
     if ($puppet_repo_merge) {
       # merge files from old into new if an 'old' exists (we've just moved it)
@@ -143,7 +171,7 @@ class dopuppetmaster (
         user => $user,
         group => $group,
         onlyif => "test -d /tmp/puppet-old-etc",
-        require => Dorepos::Getrepo['puppet'],
+        require => [Anchor['dopuppetmaster-puppet-repo-ready']],
         before => File['common-puppet-symlink'],
       }
     }
@@ -154,7 +182,7 @@ class dopuppetmaster (
 
   # create symlink in user's home directory
   file { 'common-puppet-symlink':
-    path => "/home/${user}/puppet",
+    path => "${real_symlinkdir}/puppet",
     ensure => 'link',
     target => "${filepath}",
     require => [Package['install-puppet-master']],
