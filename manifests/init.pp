@@ -237,7 +237,7 @@ class dopuppetmaster (
     # Force puppetdb to regenerate its certificate and restart the service
     exec { 'puppetmaster-regen-ssl' :
       path => '/bin:/usr/sbin:/usr/bin',
-      command => 'rm -rf /etc/puppetdb/ssl && puppetdb-ssl-setup -f',
+      command => 'rm -rf /etc/puppetdb/ssl && puppetdb ssl-setup -f',
       # notify didn't produce a consistent state after restart
       # notify => [Service['puppetdb'], Service["${service_name}"]],
     }->
