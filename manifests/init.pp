@@ -12,6 +12,9 @@ class dopuppetmaster (
   $puppet_repo_path = '/etc/puppet',
   $puppet_environments = {},
 
+  # use new puppet server instead of puppet master
+  $puppet_server = 'puppetserver',
+
   # deprecated, to be removed
   $environments = {
     'production' => {
@@ -69,8 +72,16 @@ class dopuppetmaster (
   case $operatingsystem {
     # when settings names, can't assume that puppetdb is included
     centos, redhat, fedora: {
-      $package_name = 'puppet-server'
-      $service_name = 'puppetmaster'
+      case $puppet_server {
+        'puppetserver': {
+          $package_name = 'puppetserver'
+          $service_name = 'puppetserver'
+        }
+        default: {
+          $package_name = 'puppet-server'
+          $service_name = 'puppetmaster'
+        }
+      }
     }
     ubuntu, debian: {
       $package_name = 'puppetmaster'
