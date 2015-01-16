@@ -14,9 +14,10 @@ class dopuppetmaster::firewall (
     protocol => 'tcp',
     port => '8140',
   }
-  @docommon::fireport { '08081 PuppetDB Service':
-    protocol => 'tcp',
-    port => '8081',
-  }
+  # don't expose PuppetDB because only the local puppetmaster needs access
+  # @docommon::fireport { '08081 PuppetDB Service':
+  #   protocol => 'tcp',
+  #   port => '8081',
+  # }
 
 }

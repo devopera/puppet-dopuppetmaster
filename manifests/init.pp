@@ -12,8 +12,8 @@ class dopuppetmaster (
   $puppet_repo_path = '/etc/puppet',
   $puppet_environments = {},
 
-  # use new puppet server instead of puppet master
-  $puppet_server = 'puppetserver',
+  # use smaller puppet master by default instead of puppet server 
+  $puppet_server = 'puppetmaster',
 
   # deprecated, to be removed
   $environments = {
@@ -59,14 +59,16 @@ class dopuppetmaster (
   # open firewall ports and monitor
   if ($firewall) {
     class { 'dopuppetmaster::firewall' : }
+    @domotd::register { "Puppetmaster(8140)" : }
+  } else {
+    @domotd::register { "Puppetmaster[8140]" : }
   }
   if ($monitor) {
     class { 'dopuppetmaster::monitor' : }
   }
 
   # if we've got a message of the day, include
-  @domotd::register { "Puppetmaster(8140)" : }
-  @domotd::register { "PuppetDB(8081)" : }  
+  @domotd::register { "PuppetDB[8081]" : }  
 
   # install puppet master package, run puppet master on startup
   case $operatingsystem {
