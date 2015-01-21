@@ -59,12 +59,14 @@ class dopuppetmaster (
   # open firewall ports and monitor
   if ($firewall) {
     class { 'dopuppetmaster::firewall' : }
-    @domotd::register { "Puppetmaster(8140)" : }
+    @domotd::register { "${puppet_server}(8140)" : }
   } else {
-    @domotd::register { "Puppetmaster[8140]" : }
+    @domotd::register { "${puppet_server}[8140]" : }
   }
   if ($monitor) {
-    class { 'dopuppetmaster::monitor' : }
+    class { 'dopuppetmaster::monitor' :
+      puppet_server => $puppet_server,
+    }
   }
 
   # if we've got a message of the day, include
