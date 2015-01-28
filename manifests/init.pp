@@ -234,6 +234,7 @@ class dopuppetmaster (
     class { 'puppetdb::master::config':
       # don't put lines into puppet.conf (because it's versioned and dynamically generated)
       manage_storeconfigs => false,
+      puppet_service_name => $service_name,
       # don't check the connection because it fails on the nth run
       strict_validation => false,
     }->
