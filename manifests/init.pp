@@ -241,34 +241,37 @@ class dopuppetmaster (
       # don't put lines into puppet.conf (because it's versioned and dynamically generated)
       manage_storeconfigs => false,
       puppet_service_name => $service_name,
+      puppetdb_server => $::fqdn,
+      puppetdb_port => $puppetdb_port_https,
       # don't check the connection because it fails on the nth run
       strict_validation => false,
     }->
     # puppetdb module creates config owned by root, but change to $user
     exec { 'puppetdb-fix-config-ownership' :
       path => '/bin:/sbin:/usr/bin',
-      command => "chown ${user}:puppet /etc/puppet/puppetdb.conf",        
-    }->
+      command => "chown ${user}:puppet /etc/puppet/puppetdb.conf",
+      notify => [Service['puppetdb'], Service["${service_name}"]],
+    }
 
     # Ensure the puppetmaster service is running to initially generate its certs
-    exec { 'puppetmaster-pre-regen-start' :
-      path => '/bin:/sbin:/usr/bin',
-      command => "service ${service_name} start",
-      creates => "/var/lib/puppet/${masterssl_name}/certs/ca.pem",
-    }->
+    #exec { 'puppetmaster-pre-regen-start' :
+    #  path => '/bin:/sbin:/usr/bin',
+    #  command => "service ${service_name} start",
+    #  creates => "/var/lib/puppet/${masterssl_name}/certs/ca.pem",
+    #}->
     # Force puppetdb to regenerate its certificate and restart the service
-    exec { 'puppetmaster-regen-ssl' :
-      path => '/bin:/usr/sbin:/usr/bin',
-      command => 'rm -rf /etc/puppetdb/ssl && puppetdb ssl-setup -f',
-      # notify didn't produce a consistent state after restart
-      # notify => [Service['puppetdb'], Service["${service_name}"]],
-    }->
+    #exec { 'puppetmaster-regen-ssl' :
+    #  path => '/bin:/usr/sbin:/usr/bin',
+    #  command => 'rm -rf /etc/puppetdb/ssl && puppetdb ssl-setup -f',
+    #  # notify didn't produce a consistent state after restart
+    #  # notify => [Service['puppetdb'], Service["${service_name}"]],
+    #}->
     # restart puppetdb, then puppetmaster
-    exec { 'puppetmaster-restart-after-puppetdb' :
-      path => '/sbin',
-      command => "service ${::puppetdb::params::puppetdb_service} restart && service ${service_name} restart",
-      tag => 'service-sensitive',
-    }
+    #exec { 'puppetmaster-restart-after-puppetdb' :
+    #  path => '/sbin',
+    #  command => "service ${::puppetdb::params::puppetdb_service} restart && service ${service_name} restart",
+    #  tag => 'service-sensitive',
+    #}
     
     # use resource collector to make puppetdb service-sensitive
     Service <| title == "${::puppetdb::params::puppetdb_service}" |> {
