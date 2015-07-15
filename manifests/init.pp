@@ -7,6 +7,7 @@ class dopuppetmaster (
   $user,
   $group = 'puppet',
 
+  $puppet_port = 8140,
   $puppet_repo_source = undef,
   $puppet_repo_provider = 'git',
   $puppet_repo_path = '/etc/puppet',
@@ -41,6 +42,8 @@ class dopuppetmaster (
 
   # setup puppetdb and stored configs,
   $use_puppetdb = true,
+  $puppetdb_port_http = 8080,
+  $puppetdb_port_https = 8081,
   $symlinkdir = '/home/web',
 
   # end of class arguments
@@ -59,9 +62,9 @@ class dopuppetmaster (
   # open firewall ports and monitor
   if ($firewall) {
     class { 'dopuppetmaster::firewall' : }
-    @domotd::register { "${puppet_server}(8140)" : }
+    @domotd::register { "${puppet_server}(${puppet_port})" : }
   } else {
-    @domotd::register { "${puppet_server}[8140]" : }
+    @domotd::register { "${puppet_server}[${puppet_port}]" : }
   }
   if ($monitor) {
     class { 'dopuppetmaster::monitor' :
@@ -70,7 +73,7 @@ class dopuppetmaster (
   }
 
   # if we've got a message of the day, include
-  @domotd::register { "PuppetDB[8081]" : }  
+  @domotd::register { "PuppetDB[${puppetdb_port_https}]" : }  
 
   # install puppet master package, run puppet master on startup
   case $operatingsystem {
@@ -227,6 +230,9 @@ class dopuppetmaster (
       database => 'embedded',
       # raise heap memory limit from 192m to 512m
       java_args => { '-Xmx' => '512m' },
+      # setup ports
+      listen_port => $puppetdb_port_http,
+      ssl_listen_port => $puppetdb_port_https,
       require => [File['setup-puppetmaster-conf']],
     }->
     
