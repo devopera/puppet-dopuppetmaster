@@ -243,6 +243,8 @@ class dopuppetmaster (
       puppet_service_name => $service_name,
       puppetdb_server => $::fqdn,
       puppetdb_port => $puppetdb_port_https,
+      # manually fix broken terminus package in puppetdb::params
+      terminus_package => 'puppetdb-terminus',
       # don't check the connection because it fails on the nth run
       strict_validation => false,
     }->
