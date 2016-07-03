@@ -233,6 +233,8 @@ class dopuppetmaster (
       # setup ports
       listen_port => $puppetdb_port_http,
       ssl_listen_port => $puppetdb_port_https,
+      # manually correct out of date confdir (etcdir)
+      confdir => '/etc/puppetdb/conf.d',
       require => [File['setup-puppetmaster-conf']],
     }->
     
