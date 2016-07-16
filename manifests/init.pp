@@ -225,6 +225,14 @@ class dopuppetmaster (
 
   # optionally setup puppetDB
   if (use_puppetdb) {
+    # horrible hack to get around puppetdb's bad params
+    file { ['/etc/puppetlabs/', '/etc/puppetlabs/puppetdb/', '/etc/puppetlabs/puppetdb/conf.d/']:
+      ensure => 'directory',
+      owner => $user,
+      group => $group,
+      before => [Class['puppetdb']],
+    }
+
     # configure puppetDB and its underlying database
     class { 'puppetdb':
       database => 'embedded',
@@ -233,8 +241,9 @@ class dopuppetmaster (
       # setup ports
       listen_port => $puppetdb_port_http,
       ssl_listen_port => $puppetdb_port_https,
+      # @todo review: suspect this may be a problem
       # manually correct out of date confdir (etcdir)
-      confdir => '/etc/puppetdb/conf.d',
+      # confdir => '/etc/puppetdb/conf.d',
       require => [File['setup-puppetmaster-conf']],
     }->
     
