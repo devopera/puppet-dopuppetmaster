@@ -89,6 +89,11 @@ class dopuppetmaster (
           $service_name = 'puppetmaster'
         }
       }
+      # on RHEL also install ruby-json to address puppet > 3.5.0 ruby 1.9 req
+      package { 'install-puppet-master-reqs':
+        name => 'ruby-json',
+        ensure => 'present',
+      }
     }
     ubuntu, debian: {
       $package_name = 'puppetmaster'
